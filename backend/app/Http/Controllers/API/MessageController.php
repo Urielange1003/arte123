@@ -1,4 +1,3 @@
-```php
 <?php
 
 namespace App\Http\Controllers\API;
@@ -179,4 +178,3 @@ class MessageController extends Controller
         ]);
     }
 }
-```

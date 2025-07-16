@@ -8,6 +8,7 @@ export default defineConfig({
   server: {
     host: 'arte', // Assure que localhost est bien pris en charge
     port: 5173, // Vérifie que le port correspond bien
+    historyApiFallback: true,
   },
   resolve: {
     alias: {

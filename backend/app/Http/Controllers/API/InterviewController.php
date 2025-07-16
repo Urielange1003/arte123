@@ -1,11 +1,9 @@
-```php
 <?php
+namespace app\Http\Controllers\API;
 
-namespace App\Http\Controllers\API;
-
-use App\Http\Controllers\Controller;
-use App\Models\Interview;
-use App\Models\Notification;
+use app\Http\Controllers\Controller;
+use app\Models\Interview;
+use app\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -151,4 +149,3 @@ class InterviewController extends Controller
         ]);
     }
 }
-```

@@ -1,12 +1,32 @@
 // Common Types
 export interface User {
-  id: string;
+  id: number;
   name: string;
   email: string;
-  role: 'student' | 'admin' | 'hr' | 'supervisor';
+  role: 'stagiaire' | 'admin' | 'rh' | 'encadreur';
+  email_verified_at?: string;
   department?: string;
   phone?: string;
   avatar?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+}
+
+export interface ApiError {
+  success: boolean;
+  message: string;
+  errors?: Record<string, string[]>;
+}
+
+export interface LoginResponse {
+  access_token: string;
+  user: User;
 }
 
 export interface Notification {
@@ -21,22 +41,21 @@ export interface Notification {
 
 // Student Types
 export interface Application {
-  id: string;
-  studentId?: string;
-  fullName: string;
+  id: number;
+  user_id: number;
+  full_name: string;
   email: string;
   phone: string;
-  field: string;
+  field_of_study: string;
   school: string;
   duration: string;
-  startDate: string;
-  endDate: string;
-  cv: string;
-  certificate: string;
-  motivation: string;
+  start_date: string;
+  end_date: string;
+  cv_path: string;
+  motivation_letter_path: string;
   status: 'pending' | 'interview' | 'approved' | 'rejected';
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Internship {

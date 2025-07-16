@@ -1,60 +1,38 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Search, Filter, Download, Calendar, ChevronDown, Mail } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
+import api from '../../services/api';
+
+interface AdminApplication {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  field: string;
+  school: string;
+  date: string;
+  status: string;
+  documents: string[];
+}
 
 const AdminApplications: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedField, setSelectedField] = useState<string>('all');
-  
-  // Mock data
-  const applications = [
-    {
-      id: 'APP-3421',
-      name: 'Sophie Martin',
-      email: 'sophie.martin@example.com',
-      phone: '+237 612345688',
-      field: 'Informatique',
-      school: 'ENSPY',
-      date: '2025-03-18',
-      status: 'pending',
-      documents: ['CV', 'Lettre de motivation', 'Certificat de scolarité']
-    },
-    {
-      id: 'APP-3420',
-      name: 'Paul Biya',
-      email: 'paul.biya@example.com',
-      phone: '+237 612345699',
-      field: 'Électromécanique',
-      school: 'IUT Douala',
-      date: '2025-03-17',
-      status: 'interview',
-      documents: ['CV', 'Lettre de motivation', 'Certificat de scolarité']
-    },
-    {
-      id: 'APP-3419',
-      name: 'Marie Kamga',
-      email: 'marie.kamga@example.com',
-      phone: '+237 612345677',
-      field: 'Gestion',
-      school: 'ESSEC',
-      date: '2025-03-16',
-      status: 'approved',
-      documents: ['CV', 'Lettre de motivation', 'Certificat de scolarité']
-    },
-    {
-      id: 'APP-3418',
-      name: 'Antoine Fouda',
-      email: 'antoine.fouda@example.com',
-      phone: '+237 612345666',
-      field: 'Génie Civil',
-      school: 'ENSET Kumba',
-      date: '2025-03-15',
-      status: 'rejected',
-      documents: ['CV', 'Lettre de motivation', 'Certificat de scolarité']
-    }
-  ];
+  const [search, setSearch] = useState('');
+  const [applications, setApplications] = useState<AdminApplication[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    setLoading(true);
+    setError('');
+    api.get('/admin/applications')
+      .then(res => setApplications(res.data))
+      .catch(() => setError('Erreur lors du chargement des candidatures.'))
+      .finally(() => setLoading(false));
+  }, []);
 
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
@@ -86,6 +64,22 @@ const AdminApplications: React.FC = () => {
     }
   };
 
+  // Filtrage local
+  const filteredApps = applications.filter(app => {
+    const statusMatch = selectedStatus === 'all' || app.status === selectedStatus;
+    const fieldMatch =
+      selectedField === 'all' ||
+      (selectedField === 'informatique' && app.field.toLowerCase().includes('informatique')) ||
+      (selectedField === 'genie_civil' && app.field.toLowerCase().includes('génie civil')) ||
+      (selectedField === 'electromecanique' && app.field.toLowerCase().includes('électromécanique')) ||
+      (selectedField === 'gestion' && app.field.toLowerCase().includes('gestion'));
+    const searchMatch =
+      app.name.toLowerCase().includes(search.toLowerCase()) ||
+      app.email.toLowerCase().includes(search.toLowerCase()) ||
+      app.id.toLowerCase().includes(search.toLowerCase());
+    return statusMatch && fieldMatch && searchMatch;
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -109,8 +103,10 @@ const AdminApplications: React.FC = () => {
               placeholder="Rechercher une candidature..."
               leftIcon={<Search size={18} />}
               fullWidth
+              value={search}
+              onChange={e => setSearch(e.target.value)}
             />
-            
+
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
@@ -122,7 +118,7 @@ const AdminApplications: React.FC = () => {
               <option value="approved">Approuvé</option>
               <option value="rejected">Rejeté</option>
             </select>
-            
+
             <select
               value={selectedField}
               onChange={(e) => setSelectedField(e.target.value)}
@@ -138,91 +134,105 @@ const AdminApplications: React.FC = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-800">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  ID
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Candidat
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Filière
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  École
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Date
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Statut
-                </th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {applications.map((application) => (
-                <tr key={application.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                    {application.id}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div>
-                      <div className="text-sm font-medium text-gray-900 dark:text-white">
-                        {application.name}
-                      </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
-                        {application.email}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                    {application.field}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                    {application.school}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                    {new Date(application.date).toLocaleDateString('fr-FR')}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadgeClass(application.status)}`}>
-                      {getStatusText(application.status)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex justify-end space-x-2">
-                      <Button variant="ghost" size="sm" leftIcon={<Calendar size={16} />}>
-                        Entretien
-                      </Button>
-                      <Button variant="ghost" size="sm" leftIcon={<Mail size={16} />}>
-                        Contacter
-                      </Button>
-                      <Button variant="outline" size="sm" rightIcon={<ChevronDown size={16} />}>
-                        Actions
-                      </Button>
-                    </div>
-                  </td>
+          {loading ? (
+            <div className="text-center text-gray-500 dark:text-gray-400 py-10">Chargement...</div>
+          ) : error ? (
+            <div className="text-center text-red-500 py-10">{error}</div>
+          ) : (
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-800">
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    ID
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Candidat
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Filière
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    École
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Date
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Statut
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {filteredApps.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="text-center py-10 text-gray-500 dark:text-gray-400">
+                      Aucune candidature trouvée.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredApps.map((application) => (
+                    <tr key={application.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                        {application.id}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">
+                            {application.name}
+                          </div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            {application.email}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {application.field}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {application.school}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {new Date(application.date).toLocaleDateString('fr-FR')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadgeClass(application.status)}`}>
+                          {getStatusText(application.status)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex justify-end space-x-2">
+                          <Button variant="ghost" size="sm" leftIcon={<Calendar size={16} />}>
+                            Entretien
+                          </Button>
+                          <Button variant="ghost" size="sm" leftIcon={<Mail size={16} />}>
+                            Contacter
+                          </Button>
+                          <Button variant="outline" size="sm" rightIcon={<ChevronDown size={16} />}>
+                            Actions
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          )}
         </div>
 
         <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 sm:px-6">
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-700 dark:text-gray-300">
-              Affichage de <span className="font-medium">1</span> à <span className="font-medium">10</span> sur <span className="font-medium">20</span> résultats
+              Affichage de <span className="font-medium">1</span> à <span className="font-medium">{filteredApps.length}</span> sur <span className="font-medium">{applications.length}</span> résultats
             </div>
             <div className="flex items-center space-x-2">
               <Button variant="outline" size="sm" disabled>
                 Précédent
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" disabled>
                 Suivant
               </Button>
             </div>

@@ -1,4 +1,3 @@
-```php
 <?php
 
 namespace App\Http\Controllers\API;
@@ -127,4 +126,3 @@ class PresenceController extends Controller
         ]);
     }
 }
-```

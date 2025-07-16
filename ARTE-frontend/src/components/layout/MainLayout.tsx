@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import Navbar from '../components/layout/Navbar';
-import Footer from '../components/layout/Footer';
+import Navbar from './Navbar';
+import Footer from './Footer';
 
 const MainLayout: React.FC = () => {
   const [transparentNav, setTransparentNav] = useState(true);

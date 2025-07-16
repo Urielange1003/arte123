@@ -1,0 +1,78 @@
+/* Overlay sombre qui couvre tout l'écran */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7); /* Fond semi-transparent */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Assurez-vous qu'elle est au-dessus de tout le reste */
+    padding: 20px; /* Padding pour éviter que le contenu ne touche les bords sur petits écrans */
+    overflow-y: auto; /* Permet le défilement si le contenu de la modale est trop long */
+}
+
+/* Contenu de la modale */
+.modal-content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    max-width: 600px; /* Largeur maximale de la modale */
+    width: 100%; /* S'adapte à la largeur disponible */
+    box-sizing: border-box; /* Inclut padding et border dans la largeur/hauteur */
+    position: relative; /* Pour le bouton de fermeture absolu */
+}
+
+/* En-tête de la modale */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.5em;
+    color: #333;
+}
+
+/* Bouton de fermeture */
+.modal-close-button {
+    background: none;
+    border: none;
+    font-size: 2em;
+    cursor: pointer;
+    color: #555;
+    padding: 0;
+    line-height: 1; /* Empêche le bouton de prendre trop de hauteur */
+    transition: color 0.2s ease;
+}
+
+.modal-close-button:hover {
+    color: #000;
+}
+
+/* Corps de la modale */
+.modal-body {
+    /* Styles spécifiques au contenu */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .modal-content {
+        max-width: 90%;
+        padding: 20px;
+    }
+    .modal-header h2 {
+        font-size: 1.2em;
+    }
+    .modal-close-button {
+        font-size: 1.8em;
+    }
+}

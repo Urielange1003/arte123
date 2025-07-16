@@ -9,11 +9,14 @@ class CheckRole
 {
     public function handle(Request $request, Closure $next, ...$roles)
     {
-        if (!$request->user() || !in_array($request->user()->role, $roles)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized access'
-            ], 403);
+        // Vérifie si l'utilisateur est authentifié
+        if (! $request->user()) {
+            return response()->json(['message' => 'Non authentifié.'], 401);
+        }
+
+        // Vérifie si l'utilisateur a l'un des rôles autorisés
+        if (! in_array($request->user()->role, $roles)) {
+            return response()->json(['message' => 'Accès non autorisé pour ce rôle.'], 403);
         }
 
         return $next($request);

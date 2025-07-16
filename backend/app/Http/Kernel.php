@@ -28,12 +28,14 @@ class Kernel extends HttpKernel
 
         'api' => [
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-            \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
+            \App\Http\Middleware\VerifyCsrfToken::class,
+            \Illuminate\Routing\Middleware\ThrottleRequests::class . ':api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            // Ajoute ici d'autres middlewares globaux pour l'API si besoin
         ],
     ];
 
-    protected $middlewareAliases = [
+    protected $routeMiddleware = [
         'auth' => \App\Http\Middleware\Authenticate::class,
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
         'auth.session' => \Illuminate\Session\Middleware\AuthenticateSession::class,
@@ -44,6 +46,11 @@ class Kernel extends HttpKernel
         'signed' => \App\Http\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+        // Rôles personnalisés
+        'admin' => \App\Http\Middleware\AdminMiddleware::class,
+        'rh' => \App\Http\Middleware\RHMiddleware::class,
+        'encadreur' => \App\Http\Middleware\EncadreurMiddleware::class,
+        'stagiaire' => \App\Http\Middleware\StagiaireMiddleware::class,
         'role' => \App\Http\Middleware\CheckRole::class,
-    ],
+    ];
 }

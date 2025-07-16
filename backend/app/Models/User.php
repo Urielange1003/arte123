@@ -24,6 +24,31 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    public const ROLE_ADMIN = 'admin';
+    public const ROLE_RH = 'rh';
+    public const ROLE_ENCADREUR = 'encadreur';
+    public const ROLE_STAGIAIRE = 'stagiaire';
+
+    public function isAdmin(): bool
+    {
+        return $this->role === self::ROLE_ADMIN;
+    }
+
+    public function isRH(): bool
+    {
+        return $this->role === self::ROLE_RH;
+    }
+
+    public function isEncadreur(): bool
+    {
+        return $this->role === self::ROLE_ENCADREUR;
+    }
+
+    public function isStagiaire(): bool
+    {
+        return $this->role === self::ROLE_STAGIAIRE;
+    }
+
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',

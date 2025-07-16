@@ -11,7 +11,7 @@ const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center">
-              <img className="h-8 w-auto" src="/arte-logo.svg" alt="ARTE Logo" />
+              <img className="h-8 w-auto" src="/Logo ARTE.png" alt="Logo ARTE" />
               <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">ARTE</span>
             </div>
             <p className="mt-4 text-gray-600 dark:text-gray-300 max-w-md">

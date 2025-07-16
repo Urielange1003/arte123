@@ -1,7 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 use App\Http\Controllers\API\{
+    AdminController,
     AuthController,
     ProfileController,
     ApplicationController,
@@ -12,8 +14,13 @@ use App\Http\Controllers\API\{
     ReportController,
     BadgeController,
     NotificationController,
-    MessageController
+    MessageController,
+    RHController,
+    StagiaireController,
+    EncadreurController,
+    UserController
 };
+use App\Http\Controllers\FileUploadController;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,49 +28,74 @@ use App\Http\Controllers\API\{
 |--------------------------------------------------------------------------
 */
 
-// Public routes
+// 📤 Upload public
+Route::post('/upload', [FileUploadController::class, 'upload']);
+
+// 🧾 Auth publique
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-// Protected routes
+// 🚀 ROUTE PUBLIQUE POUR LA SOUMISSION DE CANDIDATURE
+Route::post('/apply', [ApplicationController::class, 'storePublicApplication']);
+
+// 🔐 Routes protégées par Sanctum
 Route::middleware('auth:sanctum')->group(function () {
-    // Auth routes
+
+    // Auth
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'me']);
-    
-    // Profile routes
+
+    // Profils
     Route::apiResource('profiles', ProfileController::class);
-    
-    // Application routes
-    Route::middleware('role:student,hr,admin')->group(function () {
+
+    // Applications (accès limité)
+    Route::middleware('role:stagiaire,rh,admin')->group(function () {
         Route::apiResource('applications', ApplicationController::class);
     });
-    
-    // Document routes
+
+    // Documents
     Route::apiResource('documents', DocumentController::class);
-    
-    // Interview routes
-    Route::middleware('role:hr,admin')->group(function () {
+    Route::get('/documents/{id}/download', [DocumentController::class, 'download']);
+    Route::get('/internships/{id}/generate-letter', [DocumentController::class, 'generateInternshipLetter']);
+    Route::get('/internships/{id}/generate-certificate', [DocumentController::class, 'generateCertificate']);
+
+    // Interviews (stagiaire/rh/admin)
+    Route::middleware('role:stagiaire,rh,admin')->group(function () {
         Route::apiResource('interviews', InterviewController::class);
     });
-    
-    // Stage routes
+
+    // <<<<<<<<<<< ROUTES D'ADMINISTRATION (UNIQUEMENT PAR 'admin')
+    Route::middleware('role:admin')->group(function () {
+        // Utilisez apiResource pour toutes les actions CRUD
+        Route::apiResource('admin/users', AdminController::class);
+    });
+    // >>>>>>>>>>> FIN DES ROUTES D'ADMINISTRATION 
+
+    // USERS (protection par rôle, exemple admin/rh)
+    Route::middleware('role:admin,rh')->group(function () {
+        Route::get('/users', [UserController::class, 'index']);
+        Route::get('/users/{id}', [UserController::class, 'show']);
+        Route::put('/users/{id}', [UserController::class, 'update']);
+        Route::delete('/users/{id}', [UserController::class, 'destroy']);
+    });
+
+    // Stages
     Route::apiResource('stages', StageController::class);
-    
-    // Presence routes
-    Route::middleware('role:student,supervisor,admin')->group(function () {
+
+    // Présences (Accès limité)
+    Route::middleware('role:stagiaire,supervisor,admin')->group(function () {
         Route::apiResource('presences', PresenceController::class);
     });
-    
-    // Report routes
+
+    // Rapports
     Route::apiResource('reports', ReportController::class);
-    
-    // Badge routes
-    Route::middleware('role:hr,admin')->group(function () {
+
+    // Badges (stagiaire/rh/admin)
+    Route::middleware('role:stagiaire,rh,admin')->group(function () {
         Route::apiResource('badges', BadgeController::class);
     });
-    
-    // Notification routes
+
+    // Notifications
     Route::prefix('notifications')->group(function () {
         Route::get('/', [NotificationController::class, 'index']);
         Route::get('/{id}', [NotificationController::class, 'show']);
@@ -73,8 +105,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/{id}/read', [NotificationController::class, 'markAsRead']);
         Route::patch('/read-all', [NotificationController::class, 'markAllAsRead']);
     });
-    
-    // Message routes
+
+    // Messages
     Route::prefix('messages')->group(function () {
         Route::get('/', [MessageController::class, 'index']);
         Route::get('/{id}', [MessageController::class, 'show']);
@@ -82,5 +114,27 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{id}', [MessageController::class, 'update']);
         Route::delete('/{id}', [MessageController::class, 'destroy']);
         Route::get('/conversation/{userId}', [MessageController::class, 'getConversation']);
+    });
+
+    // Ressources RH
+    Route::apiResource('rh', RHController::class);
+
+    // Ressources Stagiaires
+    Route::apiResource('stagiaires', StagiaireController::class);
+
+    // Ressources Encadreurs
+    Route::apiResource('encadreurs', EncadreurController::class);
+
+    // Routes spécifiques par rôle
+    Route::middleware('role:rh')->group(function () {
+        Route::post('/rh/applications', [RHController::class, 'processApplication']);
+    });
+
+    Route::middleware('role:encadreur')->group(function () {
+        Route::get('/encadreur/my-interns', [EncadreurController::class, 'myInterns']);
+    });
+
+    Route::middleware('role:stagiaire')->group(function () {
+        Route::get('/stagiaire/my-profile', [StagiaireController::class, 'myProfile']);
     });
 });

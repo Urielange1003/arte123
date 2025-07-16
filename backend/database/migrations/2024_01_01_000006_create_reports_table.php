@@ -8,17 +8,21 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('reports', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('stage_id')->constrained()->onDelete('cascade');
-            $table->string('file_path');
-            $table->foreignId('validated_by')->nullable()->constrained('users');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('reports')) {  
+            Schema::create('reports', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('stage_id')->constrained()->onDelete('cascade');
+                $table->string('file_path');
+                $table->foreignId('validated_by')->nullable()->constrained('users');
+                $table->timestamps();
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('reports');
+        if (Schema::hasTable('reports')) {
+            Schema::dropIfExists('reports');
+        }
     }
 };

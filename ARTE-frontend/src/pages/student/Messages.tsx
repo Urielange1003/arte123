@@ -1,69 +1,71 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Send, Search, MoreVertical, Phone, Camera as VideoCamera } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
+import api from '../../services/api';
+
+interface Contact {
+  id: string;
+  name: string;
+  role: string;
+  avatar: string;
+  online: boolean;
+  lastMessage: string;
+  lastMessageTime: string;
+  unread: number;
+}
+
+interface Message {
+  id: number;
+  senderId: string;
+  text: string;
+  timestamp: string;
+}
 
 const StudentMessages: React.FC = () => {
-  const [selectedContact, setSelectedContact] = useState<string | null>('usr-002');
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [selectedContact, setSelectedContact] = useState<string | null>(null);
   const [messageInput, setMessageInput] = useState('');
+  const [loadingContacts, setLoadingContacts] = useState(true);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [error, setError] = useState('');
 
-  // Mock data
-  const contacts = [
-    {
-      id: 'usr-002',
-      name: 'Marie Curie',
-      role: 'Encadreur',
-      avatar: 'MC',
-      online: true,
-      lastMessage: 'Bonjour Jean, pourriez-vous m\'envoyer le rapport de progression ?',
-      lastMessageTime: '10:42',
-      unread: 1
-    },
-    {
-      id: 'usr-004',
-      name: 'Service RH',
-      role: 'Ressources Humaines',
-      avatar: 'RH',
-      online: true,
-      lastMessage: 'Votre attestation de stage sera disponible à partir du 16 avril.',
-      lastMessageTime: 'Hier',
-      unread: 0
-    }
-  ];
+  // Charger les contacts au montage
+  useEffect(() => {
+    setLoadingContacts(true);
+    setError('');
+    api.get('/stagiaire/messages/contacts')
+      .then((res) => {
+        setContacts(res.data);
+        if (res.data.length > 0) setSelectedContact(res.data[0].id);
+      })
+      .catch(() => setError('Erreur lors du chargement des contacts.'))
+      .finally(() => setLoadingContacts(false));
+  }, []);
 
-  const messages = [
-    {
-      id: 1,
-      senderId: 'usr-002',
-      text: 'Bonjour Jean, j\'espère que vous allez bien.',
-      timestamp: '10:30'
-    },
-    {
-      id: 2,
-      senderId: 'usr-002',
-      text: 'Pourriez-vous m\'envoyer le rapport de progression que vous avez commencé la semaine dernière ?',
-      timestamp: '10:42'
-    },
-    {
-      id: 3,
-      senderId: 'usr-001',
-      text: 'Bonjour Mme Curie, je vais bien merci. Je finalise le rapport aujourd\'hui et vous l\'envoie d\'ici ce soir.',
-      timestamp: '10:45'
-    },
-    {
-      id: 4,
-      senderId: 'usr-002',
-      text: 'Parfait, merci. N\'oubliez pas d\'inclure les points que nous avons discutés lors de notre dernière réunion.',
-      timestamp: '10:47'
-    }
-  ];
+  // Charger les messages quand un contact est sélectionné
+  useEffect(() => {
+    if (!selectedContact) return;
+    setLoadingMessages(true);
+    setError('');
+    api.get(`/stagiaire/messages/${selectedContact}`)
+      .then((res) => setMessages(res.data))
+      .catch(() => setError('Erreur lors du chargement des messages.'))
+      .finally(() => setLoadingMessages(false));
+  }, [selectedContact]);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (messageInput.trim()) {
-      // In a real app, this would send the message to the backend
-      setMessageInput('');
+    if (messageInput.trim() && selectedContact) {
+      // Envoi du message à l’API (POST)
+      api.post(`/stagiaire/messages/${selectedContact}`, { text: messageInput })
+        .then((res) => {
+          setMessages((prev) => [...prev, res.data]);
+          setMessageInput('');
+        })
+        .catch(() => setError('Erreur lors de l’envoi du message.'));
     }
   };
 
@@ -78,55 +80,61 @@ const StudentMessages: React.FC = () => {
                 placeholder="Rechercher une conversation..."
                 leftIcon={<Search size={18} />}
                 fullWidth
+                // Ajoute ici la logique de recherche si besoin
               />
             </div>
-            
             <div className="flex-1 overflow-y-auto">
-              {contacts.map((contact) => (
-                <div
-                  key={contact.id}
-                  className={`p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 ${
-                    selectedContact === contact.id ? 'bg-gray-50 dark:bg-gray-800' : ''
-                  }`}
-                  onClick={() => setSelectedContact(contact.id)}
-                >
-                  <div className="flex items-center">
-                    <div className="relative">
-                      <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
-                        <span className="text-sm font-medium text-agl-blue">
-                          {contact.avatar}
+              {loadingContacts ? (
+                <div className="text-center text-gray-500 dark:text-gray-400 py-10">Chargement...</div>
+              ) : error ? (
+                <div className="text-center text-red-500 py-10">{error}</div>
+              ) : (
+                contacts.map((contact) => (
+                  <div
+                    key={contact.id}
+                    className={`p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 ${
+                      selectedContact === contact.id ? 'bg-gray-50 dark:bg-gray-800' : ''
+                    }`}
+                    onClick={() => setSelectedContact(contact.id)}
+                  >
+                    <div className="flex items-center">
+                      <div className="relative">
+                        <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
+                          <span className="text-sm font-medium text-agl-blue">
+                            {contact.avatar}
+                          </span>
+                        </div>
+                        {contact.online && (
+                          <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-success-500 border-2 border-white dark:border-gray-800"></div>
+                        )}
+                      </div>
+                      <div className="ml-3 flex-1">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {contact.name}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {contact.lastMessageTime}
+                          </p>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {contact.role}
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 truncate mt-1">
+                          {contact.lastMessage}
+                        </p>
+                      </div>
+                    </div>
+                    {contact.unread > 0 && (
+                      <div className="mt-2 flex justify-end">
+                        <span className="bg-camrail-red text-white text-xs font-medium px-2 py-1 rounded-full">
+                          {contact.unread}
                         </span>
                       </div>
-                      {contact.online && (
-                        <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-success-500 border-2 border-white dark:border-gray-800"></div>
-                      )}
-                    </div>
-                    <div className="ml-3 flex-1">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">
-                          {contact.name}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {contact.lastMessageTime}
-                        </p>
-                      </div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {contact.role}
-                      </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-300 truncate mt-1">
-                        {contact.lastMessage}
-                      </p>
-                    </div>
+                    )}
                   </div>
-                  {contact.unread > 0 && (
-                    <div className="mt-2 flex justify-end">
-                      <span className="bg-camrail-red text-white text-xs font-medium px-2 py-1 rounded-full">
-                        {contact.unread}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
 
@@ -166,27 +174,33 @@ const StudentMessages: React.FC = () => {
 
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                  {messages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`flex ${message.senderId === 'usr-001' ? 'justify-end' : 'justify-start'}`}
-                    >
-                      <div className={`max-w-[70%] ${
-                        message.senderId === 'usr-001'
-                          ? 'bg-agl-blue text-white rounded-t-2xl rounded-l-2xl'
-                          : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-t-2xl rounded-r-2xl'
-                      } px-4 py-2`}>
-                        <p className="text-sm">{message.text}</p>
-                        <p className={`text-xs mt-1 ${
+                  {loadingMessages ? (
+                    <div className="text-center text-gray-500 dark:text-gray-400 py-10">Chargement...</div>
+                  ) : error ? (
+                    <div className="text-center text-red-500 py-10">{error}</div>
+                  ) : (
+                    messages.map((message) => (
+                      <div
+                        key={message.id}
+                        className={`flex ${message.senderId === 'usr-001' ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div className={`max-w-[70%] ${
                           message.senderId === 'usr-001'
-                            ? 'text-blue-100'
-                            : 'text-gray-500 dark:text-gray-400'
-                        }`}>
-                          {message.timestamp}
-                        </p>
+                            ? 'bg-agl-blue text-white rounded-t-2xl rounded-l-2xl'
+                            : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-t-2xl rounded-r-2xl'
+                        } px-4 py-2`}>
+                          <p className="text-sm">{message.text}</p>
+                          <p className={`text-xs mt-1 ${
+                            message.senderId === 'usr-001'
+                              ? 'text-blue-100'
+                              : 'text-gray-500 dark:text-gray-400'
+                          }`}>
+                            {message.timestamp}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
 
                 {/* Message input */}

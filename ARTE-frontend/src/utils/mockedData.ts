@@ -10,7 +10,7 @@ export const users: User[] = [
     id: 'usr-001',
     name: 'Jean Dupont',
     email: 'jean.dupont@example.com',
-    role: 'student',
+    role: 'stagiaire',
     department: 'Direction des Systèmes d\'Information',
     phone: '+237 612345678'
   },
@@ -18,7 +18,7 @@ export const users: User[] = [
     id: 'usr-002',
     name: 'Marie Curie',
     email: 'marie.curie@camrail.cm',
-    role: 'supervisor',
+    role: 'encadreur',
     department: 'Direction des Systèmes d\'Information',
     phone: '+237 612345679'
   },
@@ -33,7 +33,7 @@ export const users: User[] = [
     id: 'usr-004',
     name: 'Responsable RH',
     email: 'rh@camrail.cm',
-    role: 'hr',
+    role: 'rh',
     department: 'Ressources Humaines',
     phone: '+237 612345681'
   }

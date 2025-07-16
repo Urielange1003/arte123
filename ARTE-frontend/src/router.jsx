@@ -1,6 +1,6 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import LoginForm from '@/components/auth/LoginForm';
-import RegisterForm from '@/components/auth/RegisterForm';
+import RegisterPage from '@/pages/auth/RegisterPage';
 import CandidatureForm from '@/pages/CandidatureForm';
 import Dashboard from '@/pages/Dashboard';
 import NotFound from '@/pages/NotFound';
@@ -12,7 +12,7 @@ import DashboardAdmin from './pages/DashboardAdmin';
 
 const router = createBrowserRouter([
   { path: '/', element: <LoginForm /> },
-  { path: '/register', element: <RegisterForm /> },
+  { path: '/register', element: <RegisterPage /> },
   { path: '/candidature', element: <CandidatureForm /> },
   { path: '/dashboard', element: <Dashboard /> },
   { path: '*', element: <NotFound /> },

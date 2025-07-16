@@ -1,4 +1,3 @@
-```php
 <?php
 
 namespace App\Http\Controllers\API;
@@ -141,5 +140,54 @@ class DocumentController extends Controller
             'message' => 'Document deleted successfully'
         ]);
     }
+    public function generateInternshipLetter($internshipId)
+    {
+        // Récupérer les données nécessaires (stagiaire, détails du stage, encadreur, etc.)
+        // Assurez-vous d'implémenter votre logique de récupération de données ici
+        $stagiaire = User::where('role', 'stagiaire')->find($internshipId); // Exemple
+        if (!$stagiaire) {
+            return response()->json(['message' => 'Stagiaire non trouvé.'], 404);
+        }
+
+        $data = [
+            'stagiaireName' => $stagiaire->name,
+            'stagiaireEmail' => $stagiaire->email,
+            'startDate' => '01/07/2025', // Remplacer par des données réelles
+            'endDate' => '30/09/2025',   // Remplacer par des données réelles
+            'companyName' => 'Camrail',
+            'rhName' => 'Nom du RH',
+            'rhTitle' => 'Responsable RH',
+            'currentDate' => now()->format('d/m/Y'),
+            'contactEmail' => 'rh@camrail.cm',
+        ];
+
+        // Charger la vue Blade qui contient le modèle de la lettre
+        $pdf = PDF::loadView('documents.internship_letter', $data);
+
+        // Retourner le PDF pour le téléchargement
+        return $pdf->download("Lettre_de_stage_{$stagiaire->name}.pdf");
+        // Ou pour l'afficher dans le navigateur: return $pdf->stream("Lettre_de_stage_{$stagiaire->name}.pdf");
+    }
+
+    public function generateCertificate($internshipId)
+    {
+        // Similaire à la fonction ci-dessus, mais pour l'attestation
+        $stagiaire = User::where('role', 'stagiaire')->find($internshipId);
+        if (!$stagiaire) {
+            return response()->json(['message' => 'Stagiaire non trouvé.'], 404);
+        }
+
+        $data = [
+            'stagiaireName' => $stagiaire->name,
+            'startDate' => '01/07/2025',
+            'endDate' => '30/09/2025',
+            'companyName' => 'Camrail',
+            'rhName' => 'Nom du RH',
+            'currentDate' => now()->format('d/m/Y'),
+            // ... d'autres données nécessaires pour l'attestation
+        ];
+
+        $pdf = PDF::loadView('documents.certificate_of_completion', $data);
+        return $pdf->download("Attestation_fin_de_stage_{$stagiaire->name}.pdf");
+    }
 }
-```

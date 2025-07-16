@@ -8,17 +8,21 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('documents', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('application_id')->constrained()->onDelete('cascade');
-            $table->enum('document_type', ['cv', 'motivation_letter', 'school_certificate']);
-            $table->string('file_path');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('documents')) {
+              Schema::create('documents', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('application_id')->constrained()->onDelete('cascade');
+                $table->enum('document_type', ['cv', 'motivation_letter', 'school_certificate']);
+                $table->string('file_path');
+                $table->timestamps();
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('documents');
+        if (Schema::hasTable('documents')) {
+            Schema::dropIfExists('documents');
+        }
     }
 };

@@ -1,4 +1,3 @@
-```php
 <?php
 
 namespace App\Http\Controllers\API;
@@ -138,4 +137,3 @@ class BadgeController extends Controller
         ]);
     }
 }
-```

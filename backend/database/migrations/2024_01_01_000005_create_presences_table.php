@@ -8,17 +8,21 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('presences', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('stage_id')->constrained()->onDelete('cascade');
-            $table->date('date');
-            $table->boolean('is_present')->default(true);
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('presences')) {  
+            Schema::create('presences', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('stage_id')->constrained()->onDelete('cascade');
+                $table->date('date');
+                $table->boolean('is_present')->default(true);
+                $table->timestamps();
+            });
+        }   
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('presences');
+        if (Schema::hasTable('presences')) {
+            Schema::dropIfExists('presences');
+        }
     }
 };
